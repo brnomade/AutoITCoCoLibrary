@@ -11,8 +11,10 @@ Const $left_margin         = 3
 Const $top_margin          = 4
 Const $background_checksum = 5
 Const $loop_delay          = 6
+Const $cell_width          = 7
+Const $cell_height         = 8
 
-Global $global_mConfiguration[7]
+Global $global_mConfiguration[9]
 
 
 Func IniReadWrapper($sFile, $sSection, $sKey)
@@ -82,7 +84,7 @@ Func decode_emulator_name_to_window_class($sEmulatorName)
     If $sEmulatorName = "XROAR" Then
         $sEmulatorString = "[CLASS:SDL_app]"
     ElseIf $sEmulatorName = "MAME" then
-        $sEmulatorString = "[TITLE:MAME: Color Computer 2B [coco2b]]"
+        $sEmulatorString = "[CLASS:MAME]"
     Else
         MsgBox($MB_OK + $MB_ICONERROR, "Error during execution", "Emulator [" & $sEmulatorName & "] is not supported or recognised. Press OK to return to editor.")
         exit
@@ -93,44 +95,61 @@ EndFunc
 
 Func initialise_emulator($sEmulatorName)
     Local $sWindowSize
+    Local $sIniSection
     
     If $sEmulatorName = "XROAR" Then
-        $sWindowSize = IniReadWrapper($global_mConfiguration[$ini_file_name], "XROAR Configuration", "WindowSize")
-        If $sWindowSize = "" Then
-            MsgBox($MB_OK + $MB_ICONERROR, "Error while initialising emulator.", "Couldn't find Section [XROAR Configuration] or Key [WindowSize] on file " & @ScriptDir & "\" & $global_mConfiguration[$ini_file_name] & ". Press OK to return to editor.")
-            exit
-        Else
-            $sWindowSize = StringSplit($sWindowSize,",")
-            WinMove($global_mConfiguration[$emulator_handle], "", 10, 10, $sWindowSize[1], $sWindowSize[2])
-        EndIf
-        
-        $global_mConfiguration[$left_margin] = IniReadWrapper($global_mConfiguration[$ini_file_name], "XRoar Configuration", "LeftMargin")
-        If $global_mConfiguration[$left_margin] = "" Then
-            MsgBox($MB_OK + $MB_ICONERROR, "Error while initialising emulator.", "Couldn't find Section [XROAR Configuration] or Key [LeftMargin] on file " & @ScriptDir & "\" & $global_mConfiguration[$ini_file_name] & ". Press OK to return to editor.")
-            exit
-        EndIf
-
-        $global_mConfiguration[$top_margin] = IniReadWrapper($global_mConfiguration[$ini_file_name], "XRoar Configuration", "TopMargin")
-        If $global_mConfiguration[$top_margin] = "" Then
-            MsgBox($MB_OK + $MB_ICONERROR, "Error while initialising emulator.", "Couldn't find Section [XROAR Configuration] or Key [TopMargin] on file " & @ScriptDir & "\" & $global_mConfiguration[$ini_file_name] & ". Press OK to return to editor.")
-            exit
-        EndIf
-        
-        $global_mConfiguration[$background_checksum] = IniReadWrapper($global_mConfiguration[$ini_file_name], "Xroar Configuration", "GreenChecksum")
-        If $global_mConfiguration[$background_checksum] = "" Then
-            MsgBox($MB_OK + $MB_ICONERROR, "Error while initialising emulator.", "Couldn't find Section [XROAR Configuration]  or Key [GreenChecksum] on file " & @ScriptDir & "\" & $global_mConfiguration[$ini_file_name] & ". Press OK to return to editor.")
-            exit
-        EndIf  
+        $sIniSection = "XROAR Configuration"
+    ElseIf $sEmulatorName = "MAME" Then
+        $sIniSection = "MAME Configuration"
     Else
         MsgBox($MB_OK + $MB_ICONERROR, "Error during execution", "Emulator [" & $sEmulatorName & "] is not supported or recognised. Press OK to return to editor.")
         exit
     EndIf
+
+    $sWindowSize = IniReadWrapper($global_mConfiguration[$ini_file_name], $sIniSection, "WindowSize")
+    If $sWindowSize = "" Then
+        MsgBox($MB_OK + $MB_ICONERROR, "Error while initialising emulator.", "Couldn't find Section [" & $sIniSection & "] or Key [WindowSize] on file " & @ScriptDir & "\" & $global_mConfiguration[$ini_file_name] & ". Press OK to return to editor.")
+        exit
+    Else
+        $sWindowSize = StringSplit($sWindowSize,",")
+        WinMove($global_mConfiguration[$emulator_handle], "", 10, 10, $sWindowSize[1], $sWindowSize[2])
+    EndIf
+        
+    $global_mConfiguration[$left_margin] = IniReadWrapper($global_mConfiguration[$ini_file_name], $sIniSection, "LeftMargin")
+    If $global_mConfiguration[$left_margin] = "" Then
+        MsgBox($MB_OK + $MB_ICONERROR, "Error while initialising emulator.", "Couldn't find Section [" & $sIniSection & "] or Key [LeftMargin] on file " & @ScriptDir & "\" & $global_mConfiguration[$ini_file_name] & ". Press OK to return to editor.")
+        exit
+    EndIf
+
+    $global_mConfiguration[$top_margin] = IniReadWrapper($global_mConfiguration[$ini_file_name], $sIniSection, "TopMargin")
+    If $global_mConfiguration[$top_margin] = "" Then
+        MsgBox($MB_OK + $MB_ICONERROR, "Error while initialising emulator.", "Couldn't find Section [" & $sIniSection & "] or Key [TopMargin] on file " & @ScriptDir & "\" & $global_mConfiguration[$ini_file_name] & ". Press OK to return to editor.")
+        exit
+    EndIf
+        
+    $global_mConfiguration[$background_checksum] = IniReadWrapper($global_mConfiguration[$ini_file_name], $sIniSection, "GreenChecksum")
+    If $global_mConfiguration[$background_checksum] = "" Then
+        MsgBox($MB_OK + $MB_ICONERROR, "Error while initialising emulator.", "Couldn't find Section [" & $sIniSection & "] or Key [GreenChecksum] on file " & @ScriptDir & "\" & $global_mConfiguration[$ini_file_name] & ". Press OK to return to editor.")
+        exit
+    EndIf  
+
+    $global_mConfiguration[$cell_width] = IniReadWrapper($global_mConfiguration[$ini_file_name], $sIniSection, "CellWidth")
+    If $global_mConfiguration[$cell_width] = "" Then
+        MsgBox($MB_OK + $MB_ICONERROR, "Error while initialising emulator.", "Couldn't find Section [" & $sIniSection & "] or Key [CellWidth] on file " & @ScriptDir & "\" & $global_mConfiguration[$ini_file_name] & ". Press OK to return to editor.")
+        exit
+    EndIf  
+
+    $global_mConfiguration[$cell_height] = IniReadWrapper($global_mConfiguration[$ini_file_name], $sIniSection, "CellHeight")
+    If $global_mConfiguration[$cell_height] = "" Then
+        MsgBox($MB_OK + $MB_ICONERROR, "Error while initialising emulator.", "Couldn't find Section [" & $sIniSection & "] or Key [CellHeight] on file " & @ScriptDir & "\" & $global_mConfiguration[$ini_file_name] & ". Press OK to return to editor.")
+        exit
+    EndIf  
 EndFunc
 
 
 Func position_mouse_at_location($column_number, $line_number)
-    Local $iX = $global_mConfiguration[$left_margin] + ($column_number * 16)
-    Local $iY = $global_mConfiguration[$top_margin] + ($line_number * 24)
+    Local $iX = $global_mConfiguration[$left_margin] + ($column_number * $global_mConfiguration[$cell_width])
+    Local $iY = $global_mConfiguration[$top_margin] + ($line_number * $global_mConfiguration[$cell_height])
     MouseMove($iX, $iY,0)
 EndFunc
 
@@ -175,26 +194,6 @@ Func location_is_empty($column_number, $line_number)
 EndFunc
 
 
-Func debug_xroar_screen()
-    AutoItSetOption ("SendKeyDownDelay" , 5)
-    AutoItSetOption ("SendKeyDelay" , 5)
-    WinActivate($global_mConfiguration[$emulator_handle], "")      
-    for $y = 1 to 10
-        for $x = 1 to 32
-            position_mouse_at_location($x,$y)
-            Local $iColor = get_color_at_location($x,$y)
-            Local $iSum = get_color_checksum_at_location($x,$y)
-            WinActivate("[CLASS:Notepad++]")
-            Send("[" & $x & "," & $y & ":" & $iColor & "," & $iSum & "]")
-            WinActivate($global_mConfiguration[$emulator_handle], "")
-        Next
-        WinActivate("[CLASS:Notepad++]")
-        Send("{ENTER}")
-        WinActivate($global_mConfiguration[$emulator_handle], "")
-    Next
-EndFunc
-
-
 Func waitForPrompt($sSection, $sKey)
     ; Wait until the prompt cursor is presented on the screen
     Local $sPosition
@@ -211,7 +210,6 @@ Func waitForPrompt($sSection, $sKey)
         WinActivate($global_mConfiguration[$emulator_handle], "")
         Sleep($global_mConfiguration[$loop_delay])
     Until not location_is_empty($sPosition[1], $sPosition[2])
-    
 EndFunc
 
 
