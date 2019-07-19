@@ -79,6 +79,11 @@ Func finalise_automation()
 EndFunc
 
 
+Func activate_emulator_window()
+    WinActivate($global_mConfiguration[$emulator_handle], "")   
+EndFunc
+
+
 Func decode_emulator_name_to_window_class($sEmulatorName)
     Local $sEmulatorString
     If $sEmulatorName = "XROAR" Then
