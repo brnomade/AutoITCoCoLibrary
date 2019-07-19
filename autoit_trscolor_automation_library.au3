@@ -2,6 +2,7 @@
 #include <MsgBoxConstants.au3>
 
 ; Created by Andre Ballista - 2019
+; GNU General Public License v3.0 - See LICENSE file for details.
 
 Const $ini_file_name       = 0
 Const $emulator_name       = 1
