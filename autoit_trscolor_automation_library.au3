@@ -1,7 +1,8 @@
+; Created by Andre Ballista - 2019
+; See license file
+
 #include-once
 #include <MsgBoxConstants.au3>
-
-; Created by Andre Ballista - 2019
 
 Const $ini_file_name       = 0
 Const $emulator_name       = 1
