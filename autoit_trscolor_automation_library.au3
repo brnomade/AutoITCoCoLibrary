@@ -74,7 +74,7 @@ Func initialise_automation($a_string)
             MsgBox($MB_OK + $MB_ICONERROR, "Error during execution", "Couldn't find a running [" & $global_mConfiguration[$emulator_name] & "] Emulator. Press OK to return to editor.")
             exit        
         Else
-            _initialise_for_emulator($global_mConfiguration[$emulator_name])
+            _initialise_emulator($global_mConfiguration[$emulator_name])
         EndIf
     EndIf
     
@@ -111,7 +111,7 @@ EndFunc
 
 
 ; internal function to load the emulator specific configuration from the ini file.
-Func _initialise_for_emulator($sEmulatorName)
+Func _initialise_emulator($sEmulatorName)
     Local $sWindowSize
     Local $sIniSection
     
