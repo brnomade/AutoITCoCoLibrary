@@ -1,0 +1,10 @@
+{
+    "autoit.consoleParams": "\"${file}\"",
+    "autoit.tidyPath": "E:\\Program Files (x86)\\AutoIt3\\SciTE\\Tidy\\Tidy.exe",
+    "autoit.wrapperPath": "E:\\Program Files (x86)\\AutoIt3\\SciTE\\AutoIt3Wrapper\\AutoIt3Wrapper.au3",
+    "autoit.kodaPath": "E:\\Program Files (x86)\\AutoIt3\\SciTE\\Koda\\FD.exe",
+    "autoit.infoPath": "E:\\Program Files (x86)\\AutoIt3\\Au3Info.exe",
+    "autoit.helpPath": "E:\\Program Files (x86)\\AutoIt3\\AutoIt3Help.exe",
+    "autoit.checkPath": "E:\\Program Files (x86)\\AutoIt3\\AU3Check.exe",
+    "autoit.aiPath": "E:\\Program Files (x86)\\AutoIt3\\AutoIt3.exe"
+}

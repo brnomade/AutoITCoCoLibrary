@@ -20,8 +20,8 @@ Sleep(5000)
 activate_emulator_window()
 
 ; create the color changing program
-Send({ENTER})
-Send({ENTER})
+Send("{ENTER}")
+Send("{ENTER}")
 Send("NEW{ENTER}")
 Send("10 CLS{ENTER}")
 Send("20 FOR C = 0 TO 8{ENTER}")
