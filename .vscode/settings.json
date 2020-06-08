@@ -6,5 +6,16 @@
     "autoit.infoPath": "E:\\Program Files (x86)\\AutoIt3\\Au3Info.exe",
     "autoit.helpPath": "E:\\Program Files (x86)\\AutoIt3\\AutoIt3Help.exe",
     "autoit.checkPath": "E:\\Program Files (x86)\\AutoIt3\\AU3Check.exe",
-    "autoit.aiPath": "E:\\Program Files (x86)\\AutoIt3\\AutoIt3.exe"
+    "autoit.aiPath": "E:\\Program Files (x86)\\AutoIt3\\AutoIt3.exe",
+    "githubIssues.queries": [
+    
+        {
+            "label": "My Issues",
+            "query": "default"
+        },
+        {
+            "label": "Created Issues",
+            "query": "author:${user} state:open repo:${owner}/${repository} sort:updated-desc"
+        }
+    ]
 }

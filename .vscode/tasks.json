@@ -8,7 +8,10 @@
             "type": "shell",
             "command": "E:\\Program Files (x86)\\AutoIt3\\AutoIt3.exe",
             "args":["${file}"],
-            "group": "none"
+            "group": {
+                "kind":"build",
+                "isDefault": true
+            }
         }
     ]
 }
