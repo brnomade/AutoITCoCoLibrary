@@ -1,5 +1,5 @@
 #include <MsgBoxConstants.au3>
-#include "autoit_trscolor_automation_library.au3"
+;#include "autoit_trscolor_automation_library.au3"
 
 ; Created by Andre Ballista - 2020
 ; GNU General Public License v3.0 - See LICENSE file for details.
@@ -7,37 +7,173 @@
 ; This generates the configuration file containing the color definitions for the start computer.
 ; It will overwrite any existing file. 
 
-;
-$emulator = "XROAR"
-
-; Initialise
-initialise_automation($emulator)
+; Initialisations
+AutoItSetOption("MouseCoordMode", 0)
+AutoItSetOption("PixelCoordMode", 0)
+AutoItSetOption ("SendKeyDelay" , 70)
+AutoItSetOption ("SendKeyDownDelay" , 70)
+Local $emulator_name = "XROAR"
+Local $emulator_handle = decode_emulator_name_to_window_class($emulator_name)
+If not WinExists($emulator_handle) Then
+    MsgBox($MB_OK + $MB_ICONERROR, "Error during execution", "Couldn't find a running [" & $emulator_name & "] Emulator. Press OK to return to editor.")
+    exit        
+EndIf
 run("notepad.exe")
 
 ; as we don't have yet control over the emulator, we will wait a fixed number of seconds before
 ; atempting to call the emulator
 Sleep(5000)
 
+setup_configuration_file($emulator_name)
+
+setup_window_calibration($emulator_handle)
+create_window_calibration($emulator_handle)
+tear_down_window_calibration($emulator_handle)
+
+setup_cell_calibration($emulator_handle)
+;create_cell_calibration(emulator_handle)
+;tear_down_cell_calibration(emulator_handle)
+
 ;setup_color_definitions($emulator)
 ;create_color_definitions()
 ;tear_down_color_definitions()
 
-setup_cell_calibration($emulator)
-create_cell_calibration()
-tear_down_cell_calibration()
+
+
 
 ; Exit Script
 MsgBox($MB_OK, "Message", "Press OK to close script.")
-finalise_automation()
+;finalise_automation()
 
+Func decode_emulator_name_to_window_class($sEmulatorName)
+    Local $sEmulatorString
+    If $sEmulatorName = "XROAR" Then
+        $sEmulatorString = "[CLASS:SDL_app]"
+    ElseIf $sEmulatorName = "MAME" then
+        $sEmulatorString = "[CLASS:MAME]"
+    Else
+        MsgBox($MB_OK + $MB_ICONERROR, "Error during execution", "Emulator [" & $sEmulatorName & "] is not supported or recognised. Press OK to return to editor.")
+        exit
+    EndIf
+    RETURN $sEmulatorString
+EndFunc
 
-Func setup_color_definitions($emulator)
-    ; open the new configuration file
+Func setup_configuration_file($emulator_name)
+    ; add a section on the configuration file
     WinActivate("[CLASS:Notepad]", "")
     Send('[Emulator Configuration]{ENTER}')
     Send('; valid values are MAME and XROAR{ENTER}')
-    Send('EmulatorName=' & $emulator & '{ENTER}')
+    Send('EmulatorName=' & $emulator_name & '{ENTER}')
     Send('{ENTER}')
+    Send('[' & $emulator_name & ' Configuration]{ENTER}')
+EndFunc
+
+Func _find_cell_boundaries_2($window_handle, $start_x, $start_y)
+    WinActivate($window_handle, "")   
+    ; AutoItSetOption('MouseCoordMode', 0)
+    ;
+    ; find the left boundary of the current color
+    MouseMove($start_x, $start_y)
+    Local $startPosition = MouseGetPos()
+    Local $color_code = PixelGetColor($startPosition[0], $startPosition[1])
+    Local $new_color_code = $color_code
+    While $new_color_code = $color_code
+        $startPosition[0] = $startPosition[0] - 1
+        $new_color_code = PixelGetColor($startPosition[0], $startPosition[1])
+    WEnd
+    Local $left_boundary = $startPosition[0] + 1
+    ;
+    ; find the right boundary of the current color
+    MouseMove($start_x, $start_y)
+    Local $startPosition = MouseGetPos()
+    Local $color_code = PixelGetColor($startPosition[0], $startPosition[1])
+    Local $new_color_code = $color_code
+    While $new_color_code = $color_code
+        $startPosition[0] = $startPosition[0] + 1
+        $new_color_code = PixelGetColor($startPosition[0], $startPosition[1])
+    WEnd
+    Local $right_boundary = $startPosition[0] - 1
+    ;
+    ; find the higher boundary of the current color
+    MouseMove($start_x, $start_y)
+    Local $startPosition = MouseGetPos()
+    Local $color_code = PixelGetColor($startPosition[0], $startPosition[1])
+    Local $new_color_code = $color_code
+    While $new_color_code = $color_code
+        $startPosition[1] = $startPosition[1] + 1
+        $new_color_code = PixelGetColor($startPosition[0], $startPosition[1])
+    WEnd
+    Local $higher_boundary = $startPosition[1] - 1
+    ;
+    ; find the lower boundary of the current color
+    MouseMove($start_x, $start_y)
+    Local $startPosition = MouseGetPos()
+    Local $color_code = PixelGetColor($startPosition[0], $startPosition[1])
+    Local $new_color_code = $color_code
+    While $new_color_code = $color_code
+        $startPosition[1] = $startPosition[1] - 1
+        $new_color_code = PixelGetColor($startPosition[0], $startPosition[1])
+    WEnd
+    Local $lower_boundary = $startPosition[1] + 1
+    ;
+    Local $aResult[5] = [$color_code, $left_boundary, $right_boundary, $higher_boundary, $lower_boundary]
+    ;AutoItSetOption('MouseCoordMode', 1)
+    Return $aResult
+EndFunc
+
+Func setup_window_calibration($window_handle)
+    ; create the configuration program on the emulator
+    WinActivate($window_handle, "")   
+    Send('{ENTER}')
+    Send('NEW{ENTER}')
+    Send('10 CLS 1{ENTER}')
+    Send('20 A$=INKEY$: IF A$="" GOTO 20{ENTER}')
+    Send('RUN{ENTER}')
+    ;
+    $return = MsgBox($MB_YESNO, "Message", "Has the code run without syntax errors?")
+    If $return = $IDNO Then
+        Exit
+    EndIf
+EndFunc
+
+Func create_window_calibration($window_handle)
+    ; window size
+    Local $aWindowSpec = WinGetPos($window_handle)
+    WinActivate("[CLASS:Notepad]", "")
+    Send('WindowSize=' & $aWindowSpec[2] & ', ' & $aWindowSpec[3] & '{ENTER}')
+    ; find borders
+    ;WinActivate($handle, "")   
+    ;AutoItSetOption('MouseCoordMode', 0)
+    Local $iposx = int($aWindowSpec[2] / 2)
+    Local $iposy = int($aWindowSpec[3] / 2)
+    Local $aBoundaries = _find_cell_boundaries_2($window_handle, int($aWindowSpec[2] / 2), int($aWindowSpec[3] / 2))
+    ;MouseMove($iposx, $iposy)
+    ;Local $startPosition = MouseGetPos()
+    ;Local $color_code = PixelGetColor($startPosition[0], $startPosition[1])
+    ;Local $new_color_code = $color_code
+    ;While $new_color_code = $color_code
+    ;    $startPosition[0] = $startPosition[0] - 1
+    ;    MouseMove($startPosition[0], $startPosition[1])
+    ;    $new_color_code = PixelGetColor($startPosition[0], $startPosition[1])
+    ;WEnd
+    ;Local $left_boundary = $startPosition[0] + 1
+    WinActivate("[CLASS:Notepad]")
+    Send('TopMargin:' & $aBoundaries[4] & '{ENTER}')
+    Send('LowerMargin:' & $aBoundaries[3] & '{ENTER}')
+    Send('RightMargin:' & $aBoundaries[2] & '{ENTER}')
+    Send('LeftMargin:' & $aBoundaries[1] & '{ENTER}')
+    ;AutoItSetOption('MouseCoordMode', 1)
+EndFunc
+
+Func tear_down_window_calibration($window_handle)
+    ; finalise the configuration routine
+    WinActivate($window_handle, "")
+    Send('{ENTER}')
+EndFunc
+
+Func setup_color_definitions($emulator)
+    ; add a section on the configuration file
+    WinActivate("[CLASS:Notepad]", "")
     Send('[' & $emulator & ' Color Definitions]{ENTER}')
 
     ; create the configuration program on the emulator
@@ -82,14 +218,14 @@ Func tear_down_color_definitions()
     Send('{ENTER}')
 EndFunc
 
-Func setup_cell_calibration($emulator)
+Func setup_cell_calibration($window_handle)
     ; add new section on configuration file
-    WinActivate("[CLASS:Notepad]")
-    Send('{ENTER}')
-    Send('[' & $emulator & ' Configuration]{ENTER}')
+    ;WinActivate("[CLASS:Notepad]")
+    ;Send('{ENTER}')
+    ;Send('[' & $emulator & ' Configuration]{ENTER}')
 
     ; create the configuration program on the emulator
-    activate_emulator_window()
+    WinActivate($window_handle, "")   
     Send('{ENTER}')
     Send('NEW{ENTER}')
     Send('10 CLS 0{ENTER}')
@@ -99,14 +235,13 @@ Func setup_cell_calibration($emulator)
     Send('50 A$=INKEY$: IF A$="" GOTO 50{ENTER}')
     Send('RUN{ENTER}')
 
-    ; calibrate the cell size
     $return = MsgBox($MB_YESNO, "Message", "Has the code run without syntax errors?")
     If $return = $IDNO Then
         Exit
     EndIf
 EndFunc
 
-Func find_cell_boundaries( $start_x, $start_y)
+Func _find_cell_boundaries( $start_x, $start_y)
     activate_emulator_window()
     ;
     ; find the left boundary of the current color
@@ -157,7 +292,8 @@ Func find_cell_boundaries( $start_x, $start_y)
     Return $aResult
 EndFunc
  
-Func create_cell_calibration()
+Func create_cell_calibration($window_handle)
+    ; calibrate the cell size
     Local $aBoundaries_1 = find_cell_boundaries( 1, 1)
     Local $aBoundaries_2 = find_cell_boundaries( 15, 1)
     Local $aBoundaries_3 = find_cell_boundaries( 30, 1)
