@@ -4,7 +4,7 @@
 ; Created by Andre Ballista - 2020
 ; GNU General Public License v3.0 - See LICENSE file for details.
 
-; This generates the configuration file containing the color definitions for the current computer.
+; This generates the configuration file containing the color definitions for the start computer.
 ; It will overwrite any existing file. 
 
 ;
@@ -22,8 +22,9 @@ Sleep(5000)
 ;create_color_definitions()
 ;tear_down_color_definitions()
 
-setup_position_calibration($emulator)
-create_position_calibration()
+setup_cell_calibration($emulator)
+create_cell_calibration()
+tear_down_cell_calibration()
 
 ; Exit Script
 MsgBox($MB_OK, "Message", "Press OK to close script.")
@@ -75,13 +76,13 @@ Func create_color_definitions()
 EndFunc
 
 Func tear_down_color_definitions()
-    ; finalise the previous configuration program
+    ; finalise the configuration routine
     activate_emulator_window()
     Send('X')
     Send('{ENTER}')
 EndFunc
 
-Func setup_position_calibration($emulator)
+Func setup_cell_calibration($emulator)
     ; add new section on configuration file
     WinActivate("[CLASS:Notepad]")
     Send('{ENTER}')
@@ -89,7 +90,9 @@ Func setup_position_calibration($emulator)
 
     ; create the configuration program on the emulator
     activate_emulator_window()
-    Send('10 CLS{ENTER}')
+    Send('{ENTER}')
+    Send('NEW{ENTER}')
+    Send('10 CLS 0{ENTER}')
     Send('20 FOR Y = 1 TO 4: FOR X = 143 TO 255 STEP 16{ENTER}')
     Send('30 PRINT CHR$(X);{ENTER}')
     Send('40 NEXT X, Y{ENTER}')
@@ -103,12 +106,72 @@ Func setup_position_calibration($emulator)
     EndIf
 EndFunc
 
-Func create_position_calibration()
+Func find_cell_boundaries( $start_x, $start_y)
     activate_emulator_window()
-    position_mouse_at_location(1,1)
-    $aCurrentPosition = MouseGetPos()
-    $color_code = PixelGetColor($aCurrentPosition[0], $aCurrentPosition[1])
+    ;
+    ; find the left boundary of the current color
+    position_mouse_at_location($start_x, $start_y)
+    Local $startPosition = MouseGetPos()
+    Local $color_code = PixelGetColor($startPosition[0], $startPosition[1])
+    Local $new_color_code = $color_code
+    While $new_color_code = $color_code
+        $startPosition[0] = $startPosition[0] - 1
+        $new_color_code = PixelGetColor($startPosition[0], $startPosition[1])
+    WEnd
+    Local $left_boundary = $startPosition[0] + 1
+    ;
+    ; find the right boundary of the current color
+    position_mouse_at_location($start_x, $start_y)
+    Local $startPosition = MouseGetPos()
+    Local $color_code = PixelGetColor($startPosition[0], $startPosition[1])
+    Local $new_color_code = $color_code
+    While $new_color_code = $color_code
+        $startPosition[0] = $startPosition[0] + 1
+        $new_color_code = PixelGetColor($startPosition[0], $startPosition[1])
+    WEnd
+    Local $right_boundary = $startPosition[0] - 1
+    ;
+    ; find the higher boundary of the current color
+    position_mouse_at_location($start_x, $start_y)
+    Local $startPosition = MouseGetPos()
+    Local $color_code = PixelGetColor($startPosition[0], $startPosition[1])
+    Local $new_color_code = $color_code
+    While $new_color_code = $color_code
+        $startPosition[1] = $startPosition[1] + 1
+        $new_color_code = PixelGetColor($startPosition[0], $startPosition[1])
+    WEnd
+    Local $higher_boundary = $startPosition[1] - 1
+    ;
+    ; find the lower boundary of the current color
+    position_mouse_at_location($start_x, $start_y)
+    Local $startPosition = MouseGetPos()
+    Local $color_code = PixelGetColor($startPosition[0], $startPosition[1])
+    Local $new_color_code = $color_code
+    While $new_color_code = $color_code
+        $startPosition[1] = $startPosition[1] - 1
+        $new_color_code = PixelGetColor($startPosition[0], $startPosition[1])
+    WEnd
+    Local $lower_boundary = $startPosition[1] + 1
+    ;
+    Local $aResult[5] = [$color_code, $left_boundary, $right_boundary, $higher_boundary, $lower_boundary]
+    Return $aResult
+EndFunc
+ 
+Func create_cell_calibration()
+    Local $aBoundaries_1 = find_cell_boundaries( 1, 1)
+    Local $aBoundaries_2 = find_cell_boundaries( 15, 1)
+    Local $aBoundaries_3 = find_cell_boundaries( 30, 1)
     WinActivate("[CLASS:Notepad]")
-    Send($color_code & '{ENTER}')
-    ; MouseMove($aOriginalPosition[0], $aOriginalPosition[1], 0)
+    Send('[CellWidth:' & $aBoundaries_1[2] - $aBoundaries_1[1] & ']{ENTER}')
+    Send('[CellHeight:' & $aBoundaries_1[3] - $aBoundaries_1[4] & ']{ENTER}')
+    Send('[CellWidth:' & $aBoundaries_2[2] - $aBoundaries_2[1] & ']{ENTER}')
+    Send('[CellHeight:' & $aBoundaries_2[3] - $aBoundaries_2[4] & ']{ENTER}')
+    Send('[CellWidth:' & $aBoundaries_3[2] - $aBoundaries_3[1] & ']{ENTER}')
+    Send('[CellHeight:' & $aBoundaries_3[3] - $aBoundaries_3[4] & ']{ENTER}')
+EndFunc
+
+Func tear_down_cell_calibration()
+    ; finalise the configuration routine
+    activate_emulator_window()
+    Send('{ENTER}')
 EndFunc
