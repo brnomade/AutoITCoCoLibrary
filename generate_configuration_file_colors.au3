@@ -13,6 +13,11 @@ AutoItSetOption ("SendKeyDelay" , 70)
 AutoItSetOption ("SendKeyDownDelay" , 70)
 Local $emulator_name = "XROAR"
 Local $emulator_handle = decode_emulator_name_to_window_class($emulator_name)
+
+; TODO: ask user to adjust the screen-size
+; TODO: test auto-it speed dinamically instead of forcing a value of 70
+; TODO: if cellsize has unexpected dimensions, rerun the test in another position of the screen
+
 If not WinExists($emulator_handle) Then
     MsgBox($MB_OK + $MB_ICONERROR, "Error during execution", "Couldn't find a running [" & $emulator_name & "] Emulator. Press OK to return to editor.")
     exit        
